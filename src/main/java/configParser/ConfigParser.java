@@ -8,27 +8,27 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class ConfigParser {
-    private final String absolutePath = "/Users/decagon/IdeaProjects/fileReadingTask2/src/main/resources/config-files/config.txt";
+    private final String contentRootPath = "src/main/resources/config-files/config.txt";
     public static Map<String, String> configurations = new HashMap<>();
     private final Map<String, String> allPaths = new HashMap<>();
 
-    public ConfigParser(String filePath) {
-        this.putInMap();
-        File file = new File(getPathValue(filePath));
+    public ConfigParser(String name_of_file) {
+        File file = new File(getPathValue(name_of_file));
         this.readFile(file);
     }
 
     private void readFile(File file) {
         try (BufferedReader reader = new BufferedReader(new FileReader(file))) {
-            String eof;
-            String app = "";
-            while ((eof = reader.readLine()) != null) {
-                if (eof.startsWith("[") && eof.endsWith("]")) {
-                    app = eof.substring(1,(eof.length() -1)) + ".";
+            String line_of_file;
+            String app_key_prefix = "";
+            while ((line_of_file = reader.readLine()) != null) {
+                if (line_of_file.startsWith("[") && line_of_file.endsWith("]")) {
+                    app_key_prefix = line_of_file.substring(1,(line_of_file.length() -1)) + ".";
                 }
-                if (eof.contains("=")) {
-                    String[] data = eof.split("=");
-                    data[0] = app + data[0];
+                if (line_of_file.contains("=")) {
+                    String[] data = line_of_file.split("=");
+                    data[0] = app_key_prefix + data[0];
+                    if (configurations.containsKey(data[0]))continue;
                     configurations.put(data[0], data[1]);
                 }
             }
@@ -40,16 +40,18 @@ public class ConfigParser {
     public String get(String key){
         return configurations.getOrDefault(key, "Invalid key");
     }
+
     private void putInMap(){
-        this.allPaths.put("production",this.absolutePath);
-        this.allPaths.put("development",this.absolutePath + ".dev");
-        this.allPaths.put("staging",this.absolutePath + ".staging");
+        this.allPaths.put("production",this.contentRootPath);
+        this.allPaths.put("development",this.contentRootPath + ".dev");
+        this.allPaths.put("staging",this.contentRootPath + ".staging");
     }
 
     private String getPathValue(String path){
+        this.putInMap();
         if(path.equals("") || path.equals("production") ) return this.allPaths.get("production");
         if(this.allPaths.containsKey(path)) return this.allPaths.get(path);
-        return this.absolutePath;
+        return this.contentRootPath;
     }
 
 }
